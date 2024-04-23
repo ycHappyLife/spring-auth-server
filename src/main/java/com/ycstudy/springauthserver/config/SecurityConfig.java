@@ -378,7 +378,9 @@ public class SecurityConfig {
      */
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().build();
+        return AuthorizationServerSettings.builder()
+                .issuer("http://127.0.0.1:8080") // 配置本机ip，其他服务调用时应改为本机实际ip地址
+                .build();
     }
 
     /**

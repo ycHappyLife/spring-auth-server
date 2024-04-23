@@ -6,12 +6,15 @@ import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -75,9 +78,23 @@ public class AuthorizationController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(Model model, HttpSession session) {
+        Object attribute = session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        if (attribute instanceof AuthenticationException exception) {
+            model.addAttribute("error", exception.getMessage());
+        }
         return "login";
     }
+
+    @ResponseBody
+    @GetMapping("/user")
+    public Map<String,Object> user(Principal principal) {
+        if (!(principal instanceof JwtAuthenticationToken token)) {
+            return Collections.emptyMap();
+        }
+        return token.getToken().getClaims();
+    }
+
 
     @GetMapping(value = "/oauth2/consent")
     public String consent(Principal principal, Model model,
